@@ -4,10 +4,10 @@ cmake_minimum_required(VERSION 3.15)
 
 #! CHANGE YOUR PROJECT NAME
 #  It is used as your project's main executable name. 
-set(PROJECT_NAME template)
+set(PROJECT_NAME echo-server-simple)
 project(${PROJECT_NAME} C CXX) # project(${PROJECT_NAME} C CXX ASM)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 
 ##########################################################
 # User configurable options of the template
@@ -56,18 +56,27 @@ include(cmake/CompilerWarnings.cmake)
 
 #! Project main executable source compilation
 add_executable(${PROJECT_NAME} main.cpp
-				options_parser/options_parser.cpp options_parser/options_parser.h)
+		src/options_parser/options_parser.cpp include/options_parser/options_parser.h
+		src/echo_server_simple.cpp include/echo_server_simple.h src/common/io.cpp include/common/io.h include/common/defines.h)
+
+#! additional executables
+add_executable(simple_client client/simple_client.c)
 
 #! Put path to your project headers
-target_include_directories(${PROJECT_NAME} PRIVATE options_parser)
+target_include_directories(${PROJECT_NAME} PRIVATE include)
 
 #! Add external packages
 # options_parser requires boost::program_options library
 find_package(Boost 1.71.0 COMPONENTS program_options system REQUIRED)
+#set(Boost_USE_STATIC_LIBS OFF) # enable dynamic linking
+#set(Boost_USE_MULTITHREAD ON)  # enable maltreating
 target_include_directories(${PROJECT_NAME} PRIVATE ${Boost_INCLUDE_DIR})
 target_link_libraries(${PROJECT_NAME} Boost::program_options Boost::system)
 
-						
+# Standard Threads
+find_package(Threads REQUIRED)
+target_link_libraries(${PROJECT_NAME} ${CMAKE_THREAD_LIBS_INIT})
+
 ##########################################################
 # Fixed CMakeLists.txt part 
 ##########################################################
