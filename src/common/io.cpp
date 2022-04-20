@@ -73,7 +73,7 @@ int read_msg(int fd, std::string &s) {
     s.reserve(EXPECTED_MESSAGE_SIZE);
 
     read_bytes = read_buffer(fd, buffer, EXPECTED_MESSAGE_SIZE + 1);
-    if (read_bytes <= 0) {
+    if (read_bytes < 0) {
         return STATUS_FAIL;
     }
 
