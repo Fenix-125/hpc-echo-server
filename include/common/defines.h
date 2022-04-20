@@ -5,7 +5,8 @@
 #ifndef ECHO_SERVER_SIMPLE_DEFINES_H
 #define ECHO_SERVER_SIMPLE_DEFINES_H
 
-#define IP_STR_SIZE             (24)
+#define IP_MAX_STR_SIZE         (16)
+
 #define EXPECTED_MESSAGE_SIZE   (4086)
 
 #define STATUS_SUCCESS          (0)

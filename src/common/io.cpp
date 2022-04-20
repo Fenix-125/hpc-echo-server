@@ -4,23 +4,23 @@
 
 #include "common/io.h"
 #include <arpa/inet.h>
-#include <cstring>
 #include <unistd.h>
-#include <memory>
+#include <sstream>
 
 #include "common/defines.h"
 
 std::string get_socket_addr_str(const struct sockaddr_in *cl_addr, socklen_t cl_addr_len) {
-    char user_ip[IP_STR_SIZE];
+    char user_ip_str[IP_MAX_STR_SIZE];
+    std::stringstream user_addr_s{};
 
     if (cl_addr->sin_family == AF_INET) {
-        inet_ntop(AF_INET, &cl_addr->sin_addr, user_ip, cl_addr_len);
+        inet_ntop(AF_INET, &cl_addr->sin_addr, user_ip_str, cl_addr_len);
     } else {
-        strncpy(user_ip, "Unknown AF", IP_STR_SIZE);
+        return "Unknown AF";
     }
-    return user_ip;
+    user_addr_s << user_ip_str << ':' << ntohs(cl_addr->sin_port);
+    return user_addr_s.str();
 }
-
 
 // size param should include place for terminating '\0' character
 ssize_t read_buffer(int fd, char *buffer, ssize_t size) {
