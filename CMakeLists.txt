@@ -59,9 +59,6 @@ add_executable(${PROJECT_NAME} main.cpp
 		src/options_parser/options_parser.cpp include/options_parser/options_parser.h
 		src/echo_server_simple.cpp include/echo_server_simple.h src/common/io.cpp include/common/io.h include/common/defines.h)
 
-#! additional executables
-add_executable(simple_client client/simple_client.c)
-
 #! Put path to your project headers
 target_include_directories(${PROJECT_NAME} PRIVATE include)
 
