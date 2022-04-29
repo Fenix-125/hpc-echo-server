@@ -57,7 +57,9 @@ include(cmake/CompilerWarnings.cmake)
 #! Project main executable source compilation
 add_executable(${PROJECT_NAME} main.cpp
 		src/options_parser/options_parser.cpp include/options_parser/options_parser.h
-		src/echo_server_simple.cpp include/echo_server_simple.h src/common/io.cpp include/common/io.h include/common/defines.h)
+		src/echo_server_simple.cpp include/echo_server_simple.h
+		src/common/io.cpp include/common/io.h include/common/defines.h
+		src/common/socket.cpp include/common/socket.h)
 
 #! Put path to your project headers
 target_include_directories(${PROJECT_NAME} PRIVATE include)
