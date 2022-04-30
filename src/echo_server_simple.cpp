@@ -50,7 +50,7 @@ namespace server_simple {
     }
 }
 
-int echo_server_simple_main(short int port) {
+int echo_server_simple_main(uint16_t port) {
     int trig_fds_count;
     std::string msg_buffer{};
 
@@ -146,6 +146,7 @@ int server_simple::server_init(uint16_t port) {
 
 void server_simple::server_terminate_handler(int signum) {
     if (!g_running_flag) {
+        close(g_server_fd);
         std::cout << SERVER_MSG_PREFIX << "Server force stop" << std::endl;
         exit(STATUS_FAIL);
     }

@@ -4,8 +4,8 @@
 #ifndef ECHO_SERVER_SIMPLE_ECHO_SERVER_SIMPLE_H
 #define ECHO_SERVER_SIMPLE_ECHO_SERVER_SIMPLE_H
 
-int echo_server_simple_main();
+#include <cinttypes>
 
-int echo_server_simple_main(short int port);
+int echo_server_simple_main(uint16_t port);
 
 #endif //ECHO_SERVER_SIMPLE_ECHO_SERVER_SIMPLE_H

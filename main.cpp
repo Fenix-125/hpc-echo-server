@@ -4,14 +4,16 @@
 #include <iostream>
 #include "options_parser/options_parser.h"
 #include "echo_server_simple.h"
+#include "echo_server_simple_threaded.h"
 
 
 int main(int argc, char* argv[]) {
     int ret = 0;
 
-    command_line_options_t command_line_options{argc, argv};
+//    command_line_options_t command_line_options{argc, argv};
 //    std::cout << "A flag value: " << command_line_options.get_A_flag() << std::endl;
-    ret = echo_server_simple_main(4025);
+//    ret = echo_server_simple_main(4025);
+    ret = echo_server_simple_threaded_main(4025);
 
     std::cout << "Echo server finished with exit code: " << ret << std::endl;
     return ret;
