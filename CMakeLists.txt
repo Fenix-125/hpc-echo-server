@@ -60,7 +60,7 @@ add_executable(${PROJECT_NAME} main.cpp
 		src/echo_server_simple.cpp include/echo_server_simple.h
 		src/common/io.cpp include/common/io.h include/common/defines.h
 		src/common/socket.cpp include/common/socket.h
-		src/echo_server_simple_threaded.cpp include/echo_server_simple_threaded.h)
+		src/echo_server_simple_threaded.cpp include/echo_server_simple_threaded.h src/common/logging.cpp include/common/logging.h)
 
 #! Put path to your project headers
 target_include_directories(${PROJECT_NAME} PRIVATE include)
@@ -77,12 +77,22 @@ target_link_libraries(${PROJECT_NAME} Boost::program_options Boost::system)
 find_package(Threads REQUIRED)
 target_link_libraries(${PROJECT_NAME} ${CMAKE_THREAD_LIBS_INIT})
 
+# Google Log
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(glog REQUIRED libglog)
+target_include_directories(${PROJECT_NAME} PRIVATE ${glog_INCLUDE_DIRS})
+target_link_libraries(${PROJECT_NAME} ${glog_LIBRARIES})
+
+find_package(gflags REQUIRED)
+target_include_directories(${PROJECT_NAME} PRIVATE ${gflags_INCLUDE_DIRS})
+target_link_libraries(${PROJECT_NAME} ${gflags_LIBRARIES})
+
 ##########################################################
 # Fixed CMakeLists.txt part 
 ##########################################################
 
 INSTALL(PROGRAMS
-		$<TARGET_FILE:${PROJECT_NAME}>	# ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}
+		$<TARGET_FILE:${PROJECT_NAME}> # ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}
 		DESTINATION bin)
 
 # Define ALL_TARGETS variable to use in PVS and Sanitizers

@@ -5,17 +5,18 @@
 #include <unistd.h>
 
 #include "common/defines.h"
+#include "common/logging.h"
 
 int server_socket_init(uint16_t port) {
     int rc;
     int server_sock_fd;
     struct sockaddr_in serv_addr{};
 
-    std::cout << SERVER_MSG_PREFIX << "Initializing..." << std::endl;
+    LOG(INFO) << "Initializing...";
 
     server_sock_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (server_sock_fd < 0) {
-        std::cerr << SERVER_MSG_PREFIX << "Error: creating listening socket." << std::endl;
+        PLOG(FATAL) << "Error creating listening socket.";
         return STATUS_FAIL;
     }
     serv_addr.sin_family = AF_INET;
@@ -28,18 +29,18 @@ int server_socket_init(uint16_t port) {
 
     rc = bind(server_sock_fd, (struct sockaddr *) &serv_addr, sizeof(serv_addr));
     if (rc < 0) {
-        std::cerr << SERVER_MSG_PREFIX << "Error calling bind()" << std::endl;
+        PLOG(FATAL) << "Error calling bind()";
         close(server_sock_fd);
         return STATUS_FAIL;
     }
 
     rc = listen(server_sock_fd, SERVER_LISTEN_BACKLOG_SIZE);
     if (rc < 0) {
-        std::cerr << SERVER_MSG_PREFIX << "Error calling listen()" << std::endl;
+        PLOG(FATAL) << "Error calling listen()";
         close(server_sock_fd);
         return STATUS_FAIL;
     }
 
-    std::cout << SERVER_MSG_PREFIX << "Initialization finished" << std::endl;
+    LOG(INFO) << "Initialization finished";
     return server_sock_fd;
 }

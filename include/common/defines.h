@@ -12,6 +12,7 @@
 #define SERVER_EXPECT_CONNECTIONS       (100)
 
 #define SERVER_MSG_PREFIX               ("[server] ")
+#define SERVER_DEFAULT_LOG_DIR          ("./logs")
 
 #define STATUS_SUCCESS                  (0)
 #define STATUS_FAIL                     (-1)

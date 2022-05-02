@@ -4,7 +4,6 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <csignal>
-#include <cstring>
 #include <string>
 #include <vector>
 #include <thread>
@@ -12,6 +11,7 @@
 #include "common/io.h"
 #include "common/defines.h"
 #include "common/socket.h"
+#include "common/logging.h"
 
 
 namespace server_simple_threaded {
@@ -58,7 +58,7 @@ int echo_server_simple_threaded_main(uint16_t port) {
     } // while (g_running_flag)
 
     close(g_server_fd);
-    std::cout << SERVER_MSG_PREFIX << "Server stopped" << std::endl;
+    LOG(INFO) << "Server stopped";
     return STATUS_SUCCESS;
 }
 
@@ -75,15 +75,16 @@ int server_simple_threaded::server_init(uint16_t port) {
 void server_simple_threaded::server_terminate_handler(int signum) {
     if (!g_running_flag) {
         close(g_server_fd);
-        std::cout << SERVER_MSG_PREFIX << "Server force stop" << std::endl;
+        LOG(WARNING) << "Server force stop";
+        logging_deinit();
         exit(STATUS_FAIL);
     }
     g_running_flag = false;
-    std::cout << SERVER_MSG_PREFIX << "Server stop command issued" << std::endl;
+    LOG(WARNING) << "Server stop command issued";
     if (-1 != g_server_fd) {
         shutdown(g_server_fd, SHUT_RDWR);
     } else {
-        std::cout << SERVER_MSG_PREFIX << "Server socket is not set" << std::endl;
+        LOG(WARNING) << "Server socket is not set";
     }
 }
 
@@ -94,8 +95,7 @@ void server_simple_threaded::client::client_handler(int fd, std::string name) {
         if (STATUS_SUCCESS != client::get_request_client(fd, name, msg_buffer)) {
             break;
         }
-        std::cout << SERVER_MSG_PREFIX << "Read from " << name << " msg:\n" << msg_buffer
-                  << std::endl;
+        DLOG(INFO) << "Read from " << name << " msg:\n" << msg_buffer;
         if (STATUS_SUCCESS != client::send_response_client(fd, name, msg_buffer)) {
             break;
         }
@@ -109,25 +109,28 @@ int server_simple_threaded::client::connect_client(int &fd, std::string &name) {
 
     client_sock_fd = accept(g_server_fd, (struct sockaddr *) &client_addr, &client_addr_len);
     if (client_sock_fd < 0) {
-        std::cerr << SERVER_MSG_PREFIX << "Error: calling accept() errno: " << strerror(errno) << std::endl;
+        if (g_running_flag) {
+            PLOG(ERROR) << "Error calling accept()";
+        }
+        // EXIT PROGRAM
         return STATUS_FAIL;
     }
     fd = client_sock_fd;
     name = get_socket_addr_str(&client_addr, client_addr_len);
-    std::cout << SERVER_MSG_PREFIX << "New connection from " << name << std::endl;
+    LOG(INFO) << "New connection from " << name;
     return STATUS_SUCCESS;
 }
 
 void server_simple_threaded::client::close_client(int fd, const std::string &name) {
     // Disconnect
     close(fd);
-    std::cout << SERVER_MSG_PREFIX << "Connection closed for " << name << std::endl;
+    LOG(INFO) << "Connection closed for " << name;
 }
 
 int server_simple_threaded::client::get_request_client(int fd, const std::string &name, std::string &msg_buffer) {
     int io_status = read_msg(fd, msg_buffer);
     if (STATUS_SUCCESS != io_status) {
-        std::cerr << SERVER_MSG_PREFIX << "Error: failed to read from " << name << std::endl;
+        LOG(WARNING) << "failed to read from " << name;
         client::close_client(fd, name);
         return STATUS_FAIL;
     }
@@ -139,11 +142,11 @@ int server_simple_threaded::client::get_request_client(int fd, const std::string
     return STATUS_SUCCESS;
 }
 
-int
-server_simple_threaded::client::send_response_client(int fd, const std::string &name, const std::string &msg_buffer) {
+int server_simple_threaded::client::send_response_client(int fd,
+                                                         const std::string &name, const std::string &msg_buffer) {
     int io_status = write_msg(fd, msg_buffer);
     if (STATUS_SUCCESS != io_status) {
-        std::cerr << SERVER_MSG_PREFIX << "Error: failed to write from " << name << std::endl;
+        LOG(WARNING) << "failed to write to " << name;
         client::close_client(fd, name);
         return STATUS_FAIL;
     }

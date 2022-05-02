@@ -16,6 +16,7 @@
 #include "common/io.h"
 #include "common/defines.h"
 #include "common/socket.h"
+#include "common/logging.h"
 
 
 #define GC_THRESHOLD                    (10)
@@ -68,7 +69,7 @@ int echo_server_simple_main(uint16_t port) {
                 continue; // while (g_running_flag)
             }
             if (g_running_flag) {
-                std::cerr << SERVER_MSG_PREFIX << "Error: calling poll errno: " << strerror(errno) << std::endl;
+                PLOG(ERROR) << "Error calling poll";
             } else {
                 // user stop signal issued
             }
@@ -83,9 +84,9 @@ int echo_server_simple_main(uint16_t port) {
             // Error handling
             if (POLLIN != g_db_fd_pool[SERVER_FD_INDEX].revents) {
                 if (g_running_flag) {
-                    std::cerr << SERVER_MSG_PREFIX << "Error: server socket fail" << std::endl;
+                    LOG(ERROR) << "Error server socket fail";
                 }
-                std::cout << SERVER_MSG_PREFIX << "Server socket closed" << std::endl;
+                LOG(INFO) << "Server socket closed";
                 break; // while (g_running_flag)
             }
             if (STATUS_SUCCESS != client::connect_client()) {
@@ -109,20 +110,19 @@ int echo_server_simple_main(uint16_t port) {
             if (STATUS_SUCCESS != client::get_request_client(index, msg_buffer)) {
                 continue; // for
             }
-            std::cout << SERVER_MSG_PREFIX << "Read from " << g_db_addr_str[index] << " msg:\n" << msg_buffer
-                      << std::endl;
+            DLOG(INFO) << "Read from " << g_db_addr_str[index] << " msg:\n" << msg_buffer;
             client::send_response_client(index, msg_buffer);
         } // for (size_t index = 1; index < g_db_fd_pool.size() && trig_fds_count > 0; ++index)
 
         // Cleanup garbage in DB
         if (STATUS_SUCCESS != gc_routine()) {
-            std::cerr << SERVER_MSG_PREFIX << "Error: critical bug during garbage collector routine" << std::endl;
+            LOG(ERROR) << "Error critical bug during garbage collector routine";
             break; // while (g_running_flag)
         }
     } // while (g_running_flag)
 
     close(g_server_fd);
-    std::cout << SERVER_MSG_PREFIX << "Server stopped" << std::endl;
+    LOG(INFO) << "Server stopped";
     return STATUS_SUCCESS;
 }
 
@@ -147,15 +147,16 @@ int server_simple::server_init(uint16_t port) {
 void server_simple::server_terminate_handler(int signum) {
     if (!g_running_flag) {
         close(g_server_fd);
-        std::cout << SERVER_MSG_PREFIX << "Server force stop" << std::endl;
+        LOG(WARNING) << "Server force stop";
+        logging_deinit();
         exit(STATUS_FAIL);
     }
     g_running_flag = false;
-    std::cout << SERVER_MSG_PREFIX << "Server stop command issued" << std::endl;
+    LOG(INFO) << "Server stop command issued";
     if (-1 != g_server_fd) {
         shutdown(g_server_fd, SHUT_RDWR);
     } else {
-        std::cout << SERVER_MSG_PREFIX << "Server socket is not set" << std::endl;
+        LOG(WARNING) << "Server socket is not set";
     }
 }
 
@@ -184,10 +185,10 @@ int server_simple::gc_routine() {
                                        }), g_db_addr_str.end());
 
     if (del_num_fd == g_garbage_count && del_num_str == g_garbage_count) {
-        std::cout << SERVER_MSG_PREFIX << "GC clean up " << g_garbage_count << " elements" << std::endl;
+        LOG(INFO) << "GC clean up " << g_garbage_count << " elements";
         rc = STATUS_SUCCESS;
     } else {
-        std::cerr << SERVER_MSG_PREFIX << "GC encountered a critical BUG" << g_garbage_count << std::endl;
+        LOG(ERROR) << "GC encountered a critical BUG" << g_garbage_count;
         rc = STATUS_FAIL;
     }
     g_garbage_count = 0;
@@ -201,20 +202,20 @@ int server_simple::client::connect_client() {
 
     client_sock_fd = accept(g_server_fd, (struct sockaddr *) &client_addr, &client_addr_len);
     if (client_sock_fd < 0) {
-        std::cerr << SERVER_MSG_PREFIX << "Error: calling accept() errno: " << strerror(errno) << std::endl;
+        PLOG(ERROR) << "Error calling accept()";
         return STATUS_FAIL;
     }
     g_db_fd_pool.emplace_back(pollfd{client_sock_fd, POLLIN | POLLERR | POLLHUP | POLLNVAL, 0});
     // g_db_addr_str expects not empty string
     g_db_addr_str.emplace_back(get_socket_addr_str(&client_addr, client_addr_len));
-    std::cout << SERVER_MSG_PREFIX << "New connection from " << g_db_addr_str.back() << std::endl;
+    LOG(INFO) << "New connection from " << g_db_addr_str.back();
     return STATUS_SUCCESS;
 }
 
 void server_simple::client::close_client(size_t client_pool_index) {
     // Disconnect
     close(g_db_fd_pool[client_pool_index].fd);
-    std::cout << SERVER_MSG_PREFIX << "Connection closed for " << g_db_addr_str[client_pool_index] << std::endl;
+    LOG(INFO) << "Connection closed for " << g_db_addr_str[client_pool_index];
     g_db_fd_pool[client_pool_index].fd = FD_POOL_DUMMY_FD;
     g_db_addr_str[client_pool_index] = FD_POOL_EMPTY_ADDRESS_STR;
     g_garbage_count++;
@@ -223,8 +224,7 @@ void server_simple::client::close_client(size_t client_pool_index) {
 int server_simple::client::get_request_client(size_t client_pool_index, std::string &msg_buffer) {
     int io_status = read_msg(g_db_fd_pool[client_pool_index].fd, msg_buffer);
     if (STATUS_SUCCESS != io_status) {
-        std::cerr << SERVER_MSG_PREFIX << "Error: failed to read from " << g_db_addr_str[client_pool_index]
-                  << std::endl;
+        LOG(WARNING) << "Error failed to read from " << g_db_addr_str[client_pool_index];
         client::close_client(client_pool_index);
         return STATUS_FAIL;
     }
@@ -239,8 +239,7 @@ int server_simple::client::get_request_client(size_t client_pool_index, std::str
 void server_simple::client::send_response_client(size_t client_pool_index, const std::string &msg_buffer) {
     int io_status = write_msg(g_db_fd_pool[client_pool_index].fd, msg_buffer);
     if (STATUS_SUCCESS != io_status) {
-        std::cerr << SERVER_MSG_PREFIX << "Error: failed to write from " << g_db_addr_str[client_pool_index]
-                  << std::endl;
+        LOG(WARNING) << "Error failed to write from " << g_db_addr_str[client_pool_index];
         client::close_client(client_pool_index);
     }
 }
