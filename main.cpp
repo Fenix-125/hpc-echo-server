@@ -3,23 +3,34 @@
 
 #include <iostream>
 #include "common/logging.h"
-#include "options_parser/options_parser.h"
+
+#ifdef ECHO_SERVER_SIMPLE
+
 #include "echo_server_simple.h"
+
+#elif ECHO_SERVER_SIMPLE_THREADED
 #include "echo_server_simple_threaded.h"
+
+#endif
 
 
 int main(int argc, char *argv[]) {
-    int ret;
-
-//    command_line_options_t command_line_options{argc, argv};
-//    std::cout << "A flag value: " << command_line_options.get_A_flag() << std::endl;
+    int ret = 0;
 
     // Initialize Google’s logging library.
     logging_init(&argc, &argv);
     set_log_severity(google::GLOG_INFO);
 
-//    ret = echo_server_simple_main(4025);
+#ifdef ECHO_SERVER_SIMPLE
+    ret = echo_server_simple_main(4025);
+
+#elif ECHO_SERVER_SIMPLE_THREADED
     ret = echo_server_simple_threaded_main(4025);
+
+#else
+    LOG(FATAL) << "No valid target specified during compilation!!!";
+
+#endif
 
     LOG(INFO) << "Server finished with exit code: " << ret;
     logging_deinit();
