@@ -76,8 +76,8 @@ set(COMMON_SRC
         src/common/io.cpp include/common/io.h include/common/defines.h
         src/common/socket.cpp include/common/socket.h
         src/common/logging.cpp include/common/logging.h
-        src/common/thread_safe_queue.cpp include/common/thread_safe_queue.h
-        src/common/thread_safe_radio_queue.cpp include/common/thread_safe_radio_queue.h
+        include/common/thread_safe_queue.h
+        include/common/thread_safe_radio_queue.h
         )
 set(OPTION_PARSER_SRC
         src/options_parser/options_parser.cpp include/options_parser/options_parser.h
@@ -126,14 +126,6 @@ foreach (TARGET ${SERVER_TARGETS})
     elseif ($<IN_LIST:${THREAD_KEY_WORD},LINK_LIBS_${TARGET}>)
         # Thread
         target_link_libraries(${TARGET} ${CMAKE_THREAD_LIBS_INIT})
-    elseif ($<IN_LIST:${GLOG_KEY_WORD},LINK_LIBS_${TARGET}>)
-        # Google Log
-        target_include_directories(${TARGET} PRIVATE ${glog_INCLUDE_DIRS})
-        target_link_libraries(${TARGET} ${glog_LIBRARIES})
-    elseif ($<IN_LIST:${GFLAGS_KEY_WORD},LINK_LIBS_${TARGET}>)
-        # Google Flags
-        target_include_directories(${TARGET} PRIVATE ${gflags_INCLUDE_DIRS})
-        target_link_libraries(${TARGET} ${gflags_LIBRARIES})
     endif ()
 
 endforeach ()
