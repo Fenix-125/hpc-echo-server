@@ -87,12 +87,16 @@ set(OPTION_PARSER_SRC
 set(SERVER_TARGETS
         echo_server_simple
         echo_server_simple_threaded
+        echo_server_custom_thread_pool
         )
 
 #! Specify libs to link
 set(LINK_LIBS_echo_server_simple
         )
 set(LINK_LIBS_echo_server_simple_threaded
+        ${THREADS_KEY_WORD}
+        )
+set(LINK_LIBS_echo_server_custom_thread_pool
         ${THREADS_KEY_WORD}
         )
 

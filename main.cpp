@@ -11,6 +11,10 @@
 #elif ECHO_SERVER_SIMPLE_THREADED
 #include "echo_server_simple_threaded.h"
 
+#elif  ECHO_SERVER_CUSTOM_THREAD_POOL
+
+#include "echo_server_custom_thread_pool.h"
+
 #endif
 
 
@@ -26,6 +30,9 @@ int main(int argc, char *argv[]) {
 
 #elif ECHO_SERVER_SIMPLE_THREADED
     ret = echo_server_simple_threaded_main(4025);
+
+#elif  ECHO_SERVER_CUSTOM_THREAD_POOL
+    ret = echo_server_custom_thread_pool_main(4025);
 
 #else
     LOG(FATAL) << "No valid target specified during compilation!!!";

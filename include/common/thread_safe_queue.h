@@ -33,11 +33,13 @@ public:
 
     void emplace_front_force(T &&d);
 
+    void emplace_back_force(T &&d);
+
     T pop_front();
 
-    std::vector <T> pop_front_n(uint8_t n);
+    std::vector<T> pop_front_n(uint8_t n);
 
-    std::vector <T> pop_back_n(uint8_t n);
+    std::vector<T> pop_back_n(uint8_t n);
 
     T pop_back();
 
@@ -69,8 +71,17 @@ void t_queue<T>::emplace_front(T &&d) {
 template<typename T>
 void t_queue<T>::emplace_front_force(T &&d) {
     {
-        std::unique_lock <std::mutex> lg(mut);
+        std::unique_lock<std::mutex> lg(mut);
         queue.emplace_front(std::move(d));
+    }
+    data_published_notify.notify_one();
+}
+
+template<typename T>
+void t_queue<T>::emplace_back_force(T &&d) {
+    {
+        std::unique_lock<std::mutex> lg(mut);
+        queue.emplace_back(std::move(d));
     }
     data_published_notify.notify_one();
 }
@@ -79,7 +90,7 @@ template<typename T>
 T t_queue<T>::pop_front() {
     T d;
     {
-        std::unique_lock <std::mutex> lg(mut);
+        std::unique_lock<std::mutex> lg(mut);
         data_published_notify.wait(lg, [this]() { return !queue.empty(); });
         d = queue.front();
         queue.pop_front();
