@@ -65,7 +65,7 @@ int echo_server_simple_main(uint16_t port) {
     while (g_running_flag) {
         trig_fds_count = poll(g_db_fd_pool.data(), g_db_fd_pool.size(), INFTIM);
         if (trig_fds_count < 0) {
-            if (EINTR != errno) {
+            if (EINTR == errno) {
                 continue; // while (g_running_flag)
             }
             if (g_running_flag) {
