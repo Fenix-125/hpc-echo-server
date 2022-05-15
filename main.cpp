@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include "common/logging.h"
+#include "common/socket.h"
 
 #ifdef ECHO_SERVER_SIMPLE
 
@@ -28,6 +29,7 @@ int main(int argc, char *argv[]) {
     // Initialize Google’s logging library.
     logging_init(&argc, &argv);
     set_log_severity(google::GLOG_INFO);
+    sock_num_set_max_limit();
 
 #ifdef ECHO_SERVER_SIMPLE
     ret = echo_server_simple_main(4025);

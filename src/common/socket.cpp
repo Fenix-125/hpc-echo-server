@@ -3,9 +3,13 @@
 #include <netinet/in.h>
 #include <iostream>
 #include <unistd.h>
+#include <sys/resource.h>
 
 #include "common/defines.h"
 #include "common/logging.h"
+
+size_t g_socket_num_limit = 0;
+
 
 int server_socket_init(uint16_t port) {
     int rc;
@@ -43,4 +47,23 @@ int server_socket_init(uint16_t port) {
 
     LOG(INFO) << "Initialization finished";
     return server_sock_fd;
+}
+
+void sock_num_set_max_limit() {
+    rlimit limit{};
+
+    if (STATUS_SUCCESS != getrlimit(RLIMIT_NOFILE, &limit)) {
+        PLOG(ERROR) << "syscall getrlimit failed";
+        return;
+    }
+    g_socket_num_limit = static_cast<size_t>(limit.rlim_cur);
+    limit.rlim_cur = limit.rlim_max;
+
+    if (STATUS_SUCCESS != setrlimit(RLIMIT_NOFILE, &limit)) {
+        LOG(INFO) << "Set server max connections num: " << g_socket_num_limit;
+        PLOG(ERROR) << "syscall getrlimit failed";
+        return;
+    }
+    g_socket_num_limit = static_cast<size_t>(limit.rlim_cur);
+    LOG(INFO) << "Set server max connections num: " << g_socket_num_limit;
 }
