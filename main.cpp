@@ -15,6 +15,10 @@
 
 #include "echo_server_custom_thread_pool.h"
 
+#elif  ECHO_SERVER_BOOST_ASIO_STACKFUL
+
+#include "echo_server_boost_asio_stackful.h"
+
 #endif
 
 
@@ -33,6 +37,9 @@ int main(int argc, char *argv[]) {
 
 #elif  ECHO_SERVER_CUSTOM_THREAD_POOL
     ret = echo_server_custom_thread_pool_main(4025);
+
+#elif  ECHO_SERVER_BOOST_ASIO_STACKFUL
+    ret = echo_server_boost_asio_stackful_main(4025);
 
 #else
     LOG(FATAL) << "No valid target specified during compilation!!!";

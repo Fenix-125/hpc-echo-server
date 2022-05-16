@@ -55,7 +55,6 @@ include(cmake/CompilerWarnings.cmake)
 find_package(Boost 1.71.0 COMPONENTS program_options system REQUIRED)
 #set(Boost_USE_STATIC_LIBS OFF) # enable dynamic linking
 #set(Boost_USE_MULTITHREAD ON)  # enable maltreating
-set(BOOST_SUBLIBS_SPECIFY Boost::program_options Boost::system)
 set(BOOST_KEY_WORD boost_lib)
 
 # Standard Threads
@@ -88,6 +87,7 @@ set(SERVER_TARGETS
         echo_server_simple
         echo_server_simple_threaded
         echo_server_custom_thread_pool
+        echo_server_boost_asio_stackful
         )
 
 #! Specify libs to link
@@ -98,6 +98,9 @@ set(LINK_LIBS_echo_server_simple_threaded
         )
 set(LINK_LIBS_echo_server_custom_thread_pool
         ${THREADS_KEY_WORD}
+        )
+set(LINK_LIBS_echo_server_boost_asio_stackful
+        ${BOOST_KEY_WORD}
         )
 
 #! Compile Common Lib
@@ -126,7 +129,7 @@ foreach (TARGET ${SERVER_TARGETS})
     if ($<IN_LIST:${BOOST_KEY_WORD},LINK_LIBS_${TARGET}>)
         # Boost
         target_include_directories(${TARGET} PRIVATE ${Boost_INCLUDE_DIR})
-        target_link_libraries(${TARGET} ${BOOST_SUBLIBS_SPECIFY})
+        target_link_libraries(${TARGET} ${Boost_LIBRARIES})
     elseif ($<IN_LIST:${THREAD_KEY_WORD},LINK_LIBS_${TARGET}>)
         # Thread
         target_link_libraries(${TARGET} ${CMAKE_THREAD_LIBS_INIT})
