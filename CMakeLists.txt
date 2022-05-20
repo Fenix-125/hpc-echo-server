@@ -142,9 +142,8 @@ endforeach ()
 # Fixed CMakeLists.txt part 
 ##########################################################
 
-foreach (TARGET SERVER_TARGETS)
-    INSTALL(PROGRAMS
-            $<TARGET_FILE:${SERVER_TARGETS}> # ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}
+foreach (TARGET ${SERVER_TARGETS})
+    INSTALL(TARGETS ${TARGET}
             DESTINATION bin)
 endforeach ()
 

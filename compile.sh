@@ -1,15 +1,11 @@
-#!/bin/bash -x
-# Use to print each step: #!/bin/bash -x
-#
-# Example script -- boilerplate to automate compilation (and, possibly, execution) the lab project.
-#
+#!/bin/bash
 
 set -o errexit
 set -o nounset
 set -o pipefail
 
-debug_build=true
-optimize_build=false
+debug_build=false
+optimize_build=true
 remove_dirs=false
 install_prefix=".."
 
