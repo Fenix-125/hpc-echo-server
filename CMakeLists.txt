@@ -87,7 +87,8 @@ set(SERVER_TARGETS
         echo_server_simple
         echo_server_simple_threaded
         echo_server_custom_thread_pool
-        echo_server_boost_asio_stackful
+        echo_server_boost_asio
+        echo_server_boost_asio_threaded
         )
 
 #! Specify libs to link
@@ -99,8 +100,12 @@ set(LINK_LIBS_echo_server_simple_threaded
 set(LINK_LIBS_echo_server_custom_thread_pool
         ${THREADS_KEY_WORD}
         )
-set(LINK_LIBS_echo_server_boost_asio_stackful
+set(LINK_LIBS_echo_server_boost_asio
         ${BOOST_KEY_WORD}
+        )
+set(LINK_LIBS_echo_server_boost_asio_threaded
+        ${BOOST_KEY_WORD}
+        ${THREADS_KEY_WORD}
         )
 
 #! Compile Common Lib

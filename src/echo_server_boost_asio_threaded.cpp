@@ -1,5 +1,5 @@
 // source link: https://theboostcpplibraries.com/boost.asio-coroutines
-#include "echo_server_boost_asio_stackful.h"
+#include "echo_server_boost_asio_threaded.h"
 #include <boost/asio/io_service.hpp>
 #include <boost/asio/write.hpp>
 #include <boost/asio/buffer.hpp>
@@ -8,22 +8,28 @@
 #include <csignal>
 #include <string>
 #include <sstream>
+#include <list>
+#include <thread>
 
 #include "common/defines.h"
 #include "common/logging.h"
 
+#define ECHO_SERVER_THREADS         (8)
 
-namespace server_boost_asio_stackful {
+namespace server_boost_asio {
     bool g_running_flag = false;
     int g_rc = STATUS_SUCCESS;
 
     boost::asio::io_service g_io_service{};
     boost::asio::ip::tcp::endpoint g_endpoint;
     boost::asio::ip::tcp::acceptor g_acceptor{g_io_service};
+    std::list<std::thread> g_thread_list{};
 
     int server_init(uint16_t port);
 
     void server_terminate_handler(int signum);
+
+    void server_worker();
 
     namespace client {
         void connect_client();
@@ -40,10 +46,10 @@ namespace server_boost_asio_stackful {
     }
 }
 
-int echo_server_boost_asio_stackful_main(uint16_t port) {
+int echo_server_boost_asio_threaded_main(uint16_t port) {
     std::string msg_buffer{};
 
-    using namespace server_boost_asio_stackful;
+    using namespace server_boost_asio;
 
     if (STATUS_SUCCESS != server_init(port)) {
         return STATUS_FAIL;
@@ -51,13 +57,20 @@ int echo_server_boost_asio_stackful_main(uint16_t port) {
     g_running_flag = true;
 
     client::connect_client();
-    g_io_service.run();
+
+    for (int i = 0; i < ECHO_SERVER_THREADS - 1; ++i) {
+        g_thread_list.emplace_back(server_worker);
+    }
+    server_worker();
     g_acceptor.close();
+    for (auto &thread: g_thread_list) {
+        thread.join();
+    }
     LOG(INFO) << "Server stopped";
     return g_rc;
 }
 
-int server_boost_asio_stackful::server_init(uint16_t port) {
+int server_boost_asio::server_init(uint16_t port) {
     try {
         g_endpoint = boost::asio::ip::tcp::endpoint{boost::asio::ip::tcp::v4(), port};
         g_acceptor.open(g_endpoint.protocol());
@@ -76,7 +89,7 @@ int server_boost_asio_stackful::server_init(uint16_t port) {
     return STATUS_SUCCESS;
 }
 
-void server_boost_asio_stackful::server_terminate_handler(int signum) {
+void server_boost_asio::server_terminate_handler(int signum) {
     if (!g_running_flag) {
         g_acceptor.close();
         LOG(WARNING) << "Server force stop";
@@ -88,7 +101,11 @@ void server_boost_asio_stackful::server_terminate_handler(int signum) {
     LOG(INFO) << "Server stop command issued";
 }
 
-void server_boost_asio_stackful::client::connect_client() {
+void server_boost_asio::server_worker() {
+    g_io_service.run();
+}
+
+void server_boost_asio::client::connect_client() {
     g_acceptor.async_accept([](boost::system::error_code ec, boost::asio::ip::tcp::socket socket_p) {
         if (!ec) {
             auto client_p = std::make_shared<boost::asio::ip::tcp::socket>(std::move(socket_p));
@@ -108,8 +125,8 @@ void server_boost_asio_stackful::client::connect_client() {
     });
 }
 
-void server_boost_asio_stackful::client::get_request_client(std::shared_ptr<boost::asio::ip::tcp::socket> socket_p,
-                                                            std::shared_ptr<char[]> buffer_p) {
+void server_boost_asio::client::get_request_client(std::shared_ptr<boost::asio::ip::tcp::socket> socket_p,
+                                                   std::shared_ptr<char[]> buffer_p) {
     socket_p->async_read_some(
             boost::asio::buffer(buffer_p.get(), EXPECTED_MESSAGE_SIZE),
             [buffer_p, socket_p](boost::system::error_code ec, size_t length) {
@@ -124,8 +141,8 @@ void server_boost_asio_stackful::client::get_request_client(std::shared_ptr<boos
     );
 }
 
-void server_boost_asio_stackful::client::send_response_client(std::shared_ptr<boost::asio::ip::tcp::socket> socket_p,
-                                                              std::shared_ptr<char[]> buffer_p, size_t length) {
+void server_boost_asio::client::send_response_client(std::shared_ptr<boost::asio::ip::tcp::socket> socket_p,
+                                                     std::shared_ptr<char[]> buffer_p, size_t length) {
     socket_p->async_write_some(
             boost::asio::buffer(buffer_p.get(), length),
             [buffer_p, socket_p](boost::system::error_code ec, size_t length) {
@@ -138,12 +155,12 @@ void server_boost_asio_stackful::client::send_response_client(std::shared_ptr<bo
     );
 }
 
-void server_boost_asio_stackful::client::close_client(std::shared_ptr<boost::asio::ip::tcp::socket> client_p) {
+void server_boost_asio::client::close_client(std::shared_ptr<boost::asio::ip::tcp::socket> client_p) {
     DLOG(INFO) << "Connection closed for " << get_client_name(client_p);
     client_p->close();
 }
 
-std::string server_boost_asio_stackful::client::get_client_name(
+std::string server_boost_asio::client::get_client_name(
         std::shared_ptr<boost::asio::ip::tcp::socket> client_p) {
     std::stringstream s{};
     s << client_p->remote_endpoint().address().to_string() << ":"
