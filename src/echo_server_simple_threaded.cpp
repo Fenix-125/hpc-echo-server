@@ -117,14 +117,14 @@ int server_simple_threaded::client::connect_client(int &fd, std::string &name) {
     }
     fd = client_sock_fd;
     name = get_socket_addr_str(&client_addr, client_addr_len);
-    LOG(INFO) << "New connection from " << name;
+    DLOG(INFO) << "New connection from " << name;
     return STATUS_SUCCESS;
 }
 
 void server_simple_threaded::client::close_client(int fd, const std::string &name) {
     // Disconnect
     close(fd);
-    LOG(INFO) << "Connection closed for " << name;
+    DLOG(INFO) << "Connection closed for " << name;
 }
 
 int server_simple_threaded::client::get_request_client(int fd, const std::string &name, std::string &msg_buffer) {

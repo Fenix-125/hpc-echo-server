@@ -21,8 +21,8 @@
 #include "common/thread_safe_radio_queue.h"
 
 
-#define WORKER_NUM                      (4)
-#define WORK_QUEUE_MAX_SIZE             (100)
+#define WORKER_NUM                      (8)
+#define WORK_QUEUE_MAX_SIZE             (0)
 #define GC_THRESHOLD                    (10)
 #define FD_POOL_TIMEOUT_MS              (1)
 
@@ -295,7 +295,7 @@ int server_custom_thread_pool::client::connect_client() {
         g_client_db.emplace_back(client_sock_fd, get_socket_addr_str(&client_addr, client_addr_len),
                                  g_fd_pool_db.size() - 1, client::client_state::IDLE);
     }
-    LOG(INFO) << "New connection from " << g_client_db.back().name;
+    DLOG(INFO) << "New connection from " << g_client_db.back().name;
     return STATUS_SUCCESS;
 }
 
@@ -310,7 +310,7 @@ void server_custom_thread_pool::client::close_client(client_data &client) {
         close(client.fd);
         g_garbage_count++;
     }
-    LOG(INFO) << "Connection closed for " << client.name;
+    DLOG(INFO) << "Connection closed for " << client.name;
 }
 
 int server_custom_thread_pool::client::get_request_client(client_data &client, std::string &msg_buffer) {

@@ -19,7 +19,7 @@
 #include "common/logging.h"
 
 
-#define GC_THRESHOLD                    (10)
+#define GC_THRESHOLD                    (300)
 #define SERVER_FD_INDEX                 (0)
 #define INFTIM                          (-1)
 #define FD_POOL_DUMMY_FD                (-1)
@@ -208,14 +208,14 @@ int server_simple::client::connect_client() {
     g_db_fd_pool.emplace_back(pollfd{client_sock_fd, POLLIN | POLLERR | POLLHUP | POLLNVAL, 0});
     // g_db_addr_str expects not empty string
     g_db_addr_str.emplace_back(get_socket_addr_str(&client_addr, client_addr_len));
-    LOG(INFO) << "New connection from " << g_db_addr_str.back();
+    DLOG(INFO) << "New connection from " << g_db_addr_str.back();
     return STATUS_SUCCESS;
 }
 
 void server_simple::client::close_client(size_t client_pool_index) {
     // Disconnect
     close(g_db_fd_pool[client_pool_index].fd);
-    LOG(INFO) << "Connection closed for " << g_db_addr_str[client_pool_index];
+    DLOG(INFO) << "Connection closed for " << g_db_addr_str[client_pool_index];
     g_db_fd_pool[client_pool_index].fd = FD_POOL_DUMMY_FD;
     g_db_addr_str[client_pool_index] = FD_POOL_EMPTY_ADDRESS_STR;
     g_garbage_count++;

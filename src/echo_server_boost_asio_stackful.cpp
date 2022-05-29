@@ -36,7 +36,7 @@ namespace server_boost_asio_stackful {
         void send_response_client(std::shared_ptr<boost::asio::ip::tcp::socket> socket_p,
                                   std::shared_ptr<char[]> buffer_p, size_t length);
 
-        std::string get_client_name(std::shared_ptr<boost::asio::ip::tcp::socket> socket_p);
+        std::string get_client_name(std::shared_ptr<boost::asio::ip::tcp::socket> client_p);
     }
 }
 
