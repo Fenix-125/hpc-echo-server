@@ -52,9 +52,7 @@ include(cmake/CompilerWarnings.cmake)
 
 #! Prepare libraries
 # Boost
-find_package(Boost 1.71.0 COMPONENTS program_options system REQUIRED)
-#set(Boost_USE_STATIC_LIBS OFF) # enable dynamic linking
-#set(Boost_USE_MULTITHREAD ON)  # enable maltreating
+find_package(Boost 1.71.0 COMPONENTS system REQUIRED)
 set(BOOST_KEY_WORD boost_lib)
 
 # Standard Threads
@@ -77,9 +75,6 @@ set(COMMON_SRC
         src/common/logging.cpp include/common/logging.h
         include/common/thread_safe_queue.h
         include/common/thread_safe_radio_queue.h
-        )
-set(OPTION_PARSER_SRC
-        src/options_parser/options_parser.cpp include/options_parser/options_parser.h
         )
 
 #! Specify targets
@@ -151,7 +146,6 @@ foreach (TARGET ${SERVER_TARGETS})
     INSTALL(TARGETS ${TARGET}
             DESTINATION bin)
 endforeach ()
-
 
 # Define ALL_TARGETS variable to use in PVS and Sanitizers
 set(ALL_TARGETS ${SERVER_TARGETS})

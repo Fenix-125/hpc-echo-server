@@ -1,28 +1,21 @@
-// This is a personal academic project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++, C#, and Java: http://www.viva64.com
-
 #include <iostream>
 #include "common/logging.h"
 #include "common/socket.h"
 #include "common/defines.h"
 
 #ifdef ECHO_SERVER_SIMPLE
-
 #include "echo_server_simple.h"
 
 #elif ECHO_SERVER_SIMPLE_THREADED
 #include "echo_server_simple_threaded.h"
 
 #elif  ECHO_SERVER_CUSTOM_THREAD_POOL
-
 #include "echo_server_custom_thread_pool.h"
 
 #elif  ECHO_SERVER_BOOST_ASIO
-
 #include "echo_server_boost_asio.h"
 
 #elif  ECHO_SERVER_BOOST_ASIO_THREADED
-
 #include "echo_server_boost_asio_threaded.h"
 
 #endif

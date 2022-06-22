@@ -1,7 +1,3 @@
-//
-// Created by fenix on 05.04.2022.
-//
-
 #include "common/io.h"
 #include <arpa/inet.h>
 #include <unistd.h>
